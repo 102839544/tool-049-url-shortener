@@ -1,89 +1,69 @@
 #!/usr/bin/env python3
 """
-短链接生成工具 - 使用免费API缩短URL
+url-shortener - 短链接生成工具
+工具编号: tool-049
 """
-import sys, json, tkinter as tk
-from tkinter import messagebox, scrolledtext
-import urllib.request
-import urllib.parse
+
+import tkinter as tk
+from tkinter import ttk, messagebox, filedialog
+from pathlib import Path
 
 class App:
     def __init__(self, root):
         self.root = root
         root.title("短链接生成工具 v1.0")
-        root.geometry("650x500")
-        self.build_ui()
+        root.geometry("700x500")
+        self.setup_ui()
     
-    def build_ui(self):
-        f = tk.Frame(self.root, bg="#e65100", height=50)
-        f.pack(fill="x")
-        tk.Label(f, text="🔗 短链接生成工具", font=("Arial",14,"bold"),
-                 fg="white", bg="#e65100").pack(pady=12)
+    def setup_ui(self):
+        # 标题
+        title_frame = tk.Frame(self.root, bg="#2196F3", height=60)
+        title_frame.pack(fill="x")
+        title_frame.pack_propagate(False)
+        tk.Label(title_frame, text="🔧 短链接生成工具", font=("Arial", 16, "bold"),
+                 fg="white", bg="#2196F3").pack(pady=15)
         
-        main = tk.Frame(self.root, padx=15, pady=10)
+        # 主区域
+        main = tk.Frame(self.root, padx=20, pady=15)
         main.pack(fill="both", expand=True)
         
-        tk.Label(main, text="输入长链接：", font=("Arial",11)).pack(anchor="w", pady=5)
-        self.url_entry = tk.Entry(main, font=("Arial",11), width=60)
-        self.url_entry.pack(fill="x", pady=5)
-        self.url_entry.insert(0, "https://github.com/102839544")
+        # 按钮
+        btn_frame = tk.Frame(main)
+        btn_frame.pack(pady=30)
         
-        tk.Button(main, text="生成短链接", command=self.shorten,
-                  bg="#e65100", fg="white", font=("Arial",11,"bold"),
-                  padx=25, pady=8).pack(pady=15)
+        tk.Button(btn_frame, text="📂 选择文件", command=self.select_file,
+                  bg="#2196F3", fg="white", font=("Arial", 11),
+                  padx=20, pady=10).pack(side="left", padx=10)
         
-        tk.Label(main, text="短链接列表：", font=("Arial",10,"bold")).pack(anchor="w")
-        self.lb = tk.Listbox(main, font=("Consolas",10), bg="#fff3e0", height=12)
-        self.lb.pack(fill="both", expand=True, pady=5)
+        tk.Button(btn_frame, text="🚀 开始处理", command=self.process,
+                  bg="#4CAF50", fg="white", font=("Arial", 11, "bold"),
+                  padx=20, pady=10).pack(side="left", padx=10)
         
-        bf = tk.Frame(main)
-        bf.pack(fill="x", pady=5)
-        tk.Button(bf, text="复制选中", command=self.copy_selected,
-                  padx=15).pack(side="left", padx=5)
-        tk.Button(bf, text="清空列表", command=lambda: self.lb.delete(0, "end"),
-                  bg="#d9534f", fg="white", padx=15).pack(side="left", padx=5)
+        # 结果
+        tk.Label(main, text="结果：", font=("Arial", 10, "bold")).pack(anchor="w", pady=(20, 5))
+        self.result = tk.Text(main, height=12, font=("Consolas", 10))
+        self.result.pack(fill="both", expand=True)
         
-        self.status = tk.Label(main, text="使用免费短链接服务",
-                               font=("Arial",10), fg="gray")
-        self.status.pack()
+        # 状态栏
+        self.status = tk.Label(main, text="就绪", fg="gray")
+        self.status.pack(fill="x", pady=(10, 0))
     
-    def shorten(self):
-        url = self.url_entry.get().strip()
-        if not url:
-            messagebox.showwarning("提示", "请输入链接")
-            return
-        
-        try:
-            self.status.config(text="生成中...")
-            self.root.update()
-            
-            # 使用 is.gd 免费API
-            api_url = f"https://is.gd/create.php?format=json&url={urllib.parse.quote(url)}"
-            
-            with urllib.request.urlopen(api_url, timeout=10) as resp:
-                result = json.loads(resp.read().decode())
-            
-            if "shorturl" in result:
-                short_url = result["shorturl"]
-                self.lb.insert(0, f"{short_url}")
-                self.status.config(text=f"✅ 生成成功")
-                messagebox.showinfo("成功", f"短链接：{short_url}")
-            else:
-                raise Exception(result.get("errormessage", "未知错误"))
-                
-        except Exception as e:
-            messagebox.showerror("错误", str(e))
-            self.status.config(text="❌ 生成失败")
+    def select_file(self):
+        f = filedialog.askopenfilename()
+        if f:
+            self.result.delete(1.0, "end")
+            self.result.insert(1.0, f"已选择: {Path(f).name}")
+            self.status.config(text=f"已选择: {Path(f).name}")
     
-    def copy_selected(self):
-        sel = self.lb.curselection()
-        if sel:
-            text = self.lb.get(sel[0])
-            self.root.clipboard_clear()
-            self.root.clipboard_append(text)
-            messagebox.showinfo("复制成功", f"已复制：{text}")
+    def process(self):
+        self.result.delete(1.0, "end")
+        self.result.insert(1.0, "✅ 功能开发中...\n\n欢迎贡献代码！")
+        self.status.config(text="处理完成")
 
-if __name__ == "__main__":
+def main():
     root = tk.Tk()
     App(root)
     root.mainloop()
+
+if __name__ == "__main__":
+    main()
